@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nutrisnap-training:
+    build: .
+    container_name: nutrisnap-trainer
+    environment:
+      - WANDB_SILENT=false
+      - WANDB_CONSOLE=wrap
+      - WANDB_MODE=online
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount output directory to persist model artifacts
+      - ./output:/app/food101-vit-model
+      # Mount cache directory for datasets and models
+      - ./cache:/root/.cache
+    restart: unless-stopped
+    # Ensure logs are shown in real-time
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Keep container running to see logs
+    tty: true
+    stdin_open: true
