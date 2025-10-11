@@ -24,7 +24,6 @@ def train():
     # 1) Data & preprocessing
     ds = load_dataset("ethz/food101")
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Dataset loaded successfully!")
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Train samples: {len(ds['train'])}, Test samples: {len(ds['test'])}")
     
     id2label = {i: c for i, c in enumerate(ds["train"].features["label"].names)}
     label2id = {c: i for i, c in id2label.items()}
@@ -118,8 +117,8 @@ def train():
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Training arguments configured!")
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Batch size: {args.per_device_train_batch_size}, Epochs: {args.num_train_epochs}, Learning rate: {args.learning_rate}")
 
-    # Use validation split if available; otherwise fall back to test
-    _eval_split = "validation" if "validation" in prepared else "test"
+    # Use validation split
+    _eval_split = "validation"
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Using {_eval_split} split for evaluation")
 
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Initializing trainer...")
