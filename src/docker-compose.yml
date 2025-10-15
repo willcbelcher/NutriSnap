@@ -15,7 +15,7 @@ services:
       - ./output:/app/food101-vit-model
       # Mount cache directory for datasets and models
       - ./cache:/root/.cache
-    restart: unless-stopped
+    restart: "no"
     # Ensure logs are shown in real-time
     logging:
       driver: "json-file"
