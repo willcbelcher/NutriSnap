@@ -1,7 +1,32 @@
+volumes:
+  shared-data:
+
 services:
+  nutrisnap-preprocess:
+    build:
+      context: .
+      dockerfile: Dockerfile.preprocess
+    container_name: ns-preprocess
+    environment:
+      - FAST_DEV_RUN=1
+      - TRAIN_SAMPLES=200
+      - EVAL_SAMPLES=200
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - shared-data:/app/data
+      - ./cache:/root/.cache
+    restart: "no"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   nutrisnap-training:
-    build: .
-    container_name: nutrisnap-trainer
+    build:
+      context: .
+      dockerfile: Dockerfile.train
+    container_name: ns-train
     environment:
       - WANDB_SILENT=false
       - WANDB_CONSOLE=wrap
@@ -9,17 +34,14 @@ services:
       - WANDB_API_KEY=${WANDB_API_KEY}
       - PYTHONUNBUFFERED=1
     volumes:
-      # Mount output directory to persist model artifacts
+      - shared-data:/app/data
       - ./output:/app/food101-vit-model
-      # Mount cache directory for datasets and models
       - ./cache:/root/.cache
     restart: "no"
-    # Ensure logs are shown in real-time
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    # Keep container running to see logs
     tty: true
     stdin_open: true
