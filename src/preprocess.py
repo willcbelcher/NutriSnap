@@ -7,22 +7,7 @@ from transformers import (
     AutoImageProcessor,
     set_seed,
 )
-
-
-def create_transforms(processor):
-    def transforms(examples):
-        # Ensure PIL RGB
-        images = []
-        for img in examples["image"]:
-            if hasattr(img, "convert"):
-                images.append(img.convert("RGB"))
-            else:
-                images.append(Image.open(img).convert("RGB"))
-
-        inputs = processor(images=images, return_tensors="pt")
-        inputs["labels"] = examples["label"]
-        return inputs
-    return transforms
+from transforms import create_transforms
 
 
 def main():
@@ -67,11 +52,6 @@ def main():
     print("Saving processed datasets to shared volume...")
     train_ds.save_to_disk("/app/data/train")
     eval_ds.save_to_disk("/app/data/eval")
-    
-    # Save transform function separately for training script
-    import pickle
-    with open("/app/data/transforms.pkl", "wb") as f:
-        pickle.dump(transforms, f)
     
     # Save metadata for training script
     metadata = {

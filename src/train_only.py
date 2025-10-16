@@ -17,6 +17,7 @@ from transformers import (
 )
 import evaluate
 import wandb
+from transforms import create_transforms
 
 
 def main():
@@ -30,14 +31,6 @@ def main():
     train_ds = load_from_disk("/app/data/train")
     eval_ds = load_from_disk("/app/data/eval")
     
-    # Load and apply transforms
-    import pickle
-    with open("/app/data/transforms.pkl", "rb") as f:
-        transforms = pickle.load(f)
-    
-    train_ds = train_ds.with_transform(transforms)
-    eval_ds = eval_ds.with_transform(transforms)
-    
     # Load metadata
     with open("/app/data/metadata.json", "r") as f:
         metadata = json.load(f)
@@ -49,8 +42,13 @@ def main():
     
     print(f"Loaded {metadata['train_samples']} train and {metadata['eval_samples']} eval samples")
 
-    # Load processor for saving with model
+    # Load processor and create transforms
     processor = AutoImageProcessor.from_pretrained(model_ckpt)
+    transforms = create_transforms(processor)
+
+    # Apply transforms to datasets
+    train_ds = train_ds.with_transform(transforms)
+    eval_ds = eval_ds.with_transform(transforms)
 
     # -------------------------
     # 2) Model
