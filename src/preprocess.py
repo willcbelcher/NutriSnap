@@ -9,6 +9,22 @@ from transformers import (
 )
 
 
+def create_transforms(processor):
+    def transforms(examples):
+        # Ensure PIL RGB
+        images = []
+        for img in examples["image"]:
+            if hasattr(img, "convert"):
+                images.append(img.convert("RGB"))
+            else:
+                images.append(Image.open(img).convert("RGB"))
+
+        inputs = processor(images=images, return_tensors="pt")
+        inputs["labels"] = examples["label"]
+        return inputs
+    return transforms
+
+
 def main():
     set_seed(42)
     print("Running preprocess.py")
@@ -43,31 +59,19 @@ def main():
 
     model_ckpt = "google/vit-base-patch16-224-in21k"
     processor = AutoImageProcessor.from_pretrained(model_ckpt)
-
-    def transforms(examples):
-        # Ensure PIL RGB
-        images = []
-        for img in examples["image"]:
-            if hasattr(img, "convert"):
-                images.append(img.convert("RGB"))
-            else:
-                images.append(Image.open(img).convert("RGB"))
-
-        inputs = processor(images=images, return_tensors="pt")
-        inputs["labels"] = examples["label"]
-        return inputs
-
-    # Apply on-the-fly transforms
-    print("Applying transforms...")
-    train_ds = train_ds.with_transform(transforms)
-    eval_ds = eval_ds.with_transform(transforms)
+    transforms = create_transforms(processor)
 
     # -------------------------
-    # 2) Save processed datasets
+    # 2) Save processed datasets (without transforms)
     # -------------------------
     print("Saving processed datasets to shared volume...")
     train_ds.save_to_disk("/app/data/train")
     eval_ds.save_to_disk("/app/data/eval")
+    
+    # Save transform function separately for training script
+    import pickle
+    with open("/app/data/transforms.pkl", "wb") as f:
+        pickle.dump(transforms, f)
     
     # Save metadata for training script
     metadata = {

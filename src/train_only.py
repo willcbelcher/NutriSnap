@@ -30,6 +30,14 @@ def main():
     train_ds = load_from_disk("/app/data/train")
     eval_ds = load_from_disk("/app/data/eval")
     
+    # Load and apply transforms
+    import pickle
+    with open("/app/data/transforms.pkl", "rb") as f:
+        transforms = pickle.load(f)
+    
+    train_ds = train_ds.with_transform(transforms)
+    eval_ds = eval_ds.with_transform(transforms)
+    
     # Load metadata
     with open("/app/data/metadata.json", "r") as f:
         metadata = json.load(f)
